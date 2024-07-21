@@ -65,6 +65,12 @@ def main():
                 cursor: pointer;
                 border-radius: 4px;
             }
+            .prediction-results {
+                color: red;
+                font-size: 24px;
+                font-weight: bold;
+                margin-top: 20px;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -106,11 +112,14 @@ def main():
             optimizer = best_optimizer['optimizer'] if isinstance(best_optimizer, dict) else str(best_optimizer)
             accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
 
-            st.write('Prediction Results')
+            # Apply inline styling using st.markdown with HTML
+            st.markdown('<div class="prediction-results">Prediction Results</div>', unsafe_allow_html=True)
+
             for i, pred in enumerate(predictions_list):
                 st.write(f'Row {i+1} Prediction: {round(float(pred), 2)}')
             st.write(f'Best Optimizer: {optimizer}')
             st.write(f'Accuracy: {round(accuracy_value, 2)}')
+
         except Exception as e:
             st.error(f'Unexpected error: {str(e)}')
 
