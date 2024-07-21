@@ -55,15 +55,14 @@ def main():
             final_features = scaler.transform(np.array(features_list))
             predictions = best_model.predict(final_features)
 
-            # Convert any potential NumPy types to Python native types
-            predictions_list = predictions.tolist() if isinstance(predictions, np.ndarray) else predictions
-            optimizer = best_optimizer if isinstance(best_optimizer, str) else str(best_optimizer)
+            # Extract the optimizer name
+            optimizer_name = best_optimizer['optimizer'] if isinstance(best_optimizer, dict) and 'optimizer' in best_optimizer else str(best_optimizer)
             accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
 
             st.write('Prediction Results')
-            for i, pred in enumerate(predictions_list):
+            for i, pred in enumerate(predictions):
                 st.write(f'Row {i+1} Prediction: {round(float(pred), 2)}')
-            st.write(f'Best Optimizer: {optimizer}')
+            st.write(f'Best Optimizer: {optimizer_name}')
             st.write(f'Accuracy: {round(accuracy_value, 2)}')
         except Exception as e:
             st.error(f'Unexpected error: {str(e)}')
