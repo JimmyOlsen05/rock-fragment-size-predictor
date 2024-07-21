@@ -1,9 +1,6 @@
+import streamlit as st
 import joblib
 import numpy as np
-from flask import Flask, render_template, request, jsonify
-import os
-
-app = Flask(__name__)
 
 # Global variables for model data
 best_model = None
@@ -19,56 +16,57 @@ def load_model():
         scaler = model_data['scaler']
         best_optimizer = model_data['best_optimizer']
         accuracy = model_data['accuracy']
-        
-        print(f"Model type: {type(best_model)}")
-        print(f"Scaler type: {type(scaler)}")
-        print(f"Optimizer type: {type(best_optimizer)}")
-        print(f"Accuracy type: {type(accuracy)}")
     except FileNotFoundError:
-        app.logger.error("Error: The file 'model_data2.joblib' was not found.")
+        st.error("Error: The file 'model_data2.joblib' was not found.")
         raise
     except KeyError as e:
-        app.logger.error(f"Error: Missing key in the loaded model data: {e}")
+        st.error(f"Error: Missing key in the loaded model data: {e}")
         raise
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+def main():
+    st.title("Rock Fragment Size Predictor")
 
-@app.route('/predict', methods=['POST'])
-def predict():
+    load_model()
+
     if best_model is None:
-        return jsonify({'error': 'Model not loaded'}), 500
+        st.error('Model not loaded')
+        return
 
-    try:
-        num_rows = int(request.form['num_rows'])
-        features_list = []
-        
-        for i in range(num_rows):
-            features = [float(request.form[f'{feature}_{i}']) for feature in ['burden', 'spacing', 'ucs', 'hole_diameter', 'initial_stemming', 'final_stemming', 'charge_length', 'charge_per_hole', 'powder_factor']]
-            features_list.append(features)
-        
-        final_features = scaler.transform(np.array(features_list))
-        predictions = best_model.predict(final_features)
-        
-        # Convert any potential NumPy types to Python native types
-        predictions_list = predictions.tolist() if isinstance(predictions, np.ndarray) else predictions
-        optimizer = best_optimizer if isinstance(best_optimizer, str) else str(best_optimizer)
-        accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
-        
-        return jsonify({
-            'predictions': [round(float(pred), 2) for pred in predictions_list],
-            'optimizer': optimizer,
-            'accuracy': round(accuracy_value, 2)
-        })
-    except KeyError as e:
-        return jsonify({'error': f'Missing input: {str(e)}'}), 400
-    except ValueError as e:
-        return jsonify({'error': f'Invalid input: {str(e)}'}), 400
-    except Exception as e:
-        app.logger.error(f"Unexpected error: {str(e)}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+    num_rows = st.number_input('Number of rows to predict', min_value=1, value=1)
+
+    features_list = []
+    for i in range(num_rows):
+        st.write(f'Row {i+1}')
+        burden = st.number_input(f'Burden {i+1}', min_value=0.0)
+        spacing = st.number_input(f'Spacing {i+1}', min_value=0.0)
+        ucs = st.number_input(f'UCS {i+1}', min_value=0.0)
+        hole_diameter = st.number_input(f'Hole Diameter {i+1}', min_value=0.0)
+        initial_stemming = st.number_input(f'Initial Stemming {i+1}', min_value=0.0)
+        final_stemming = st.number_input(f'Final Stemming {i+1}', min_value=0.0)
+        charge_length = st.number_input(f'Charge Length {i+1}', min_value=0.0)
+        charge_per_hole = st.number_input(f'Charge per Hole {i+1}', min_value=0.0)
+        powder_factor = st.number_input(f'Powder Factor {i+1}', min_value=0.0)
+
+        features = [burden, spacing, ucs, hole_diameter, initial_stemming, final_stemming, charge_length, charge_per_hole, powder_factor]
+        features_list.append(features)
+
+    if st.button('Predict'):
+        try:
+            final_features = scaler.transform(np.array(features_list))
+            predictions = best_model.predict(final_features)
+
+            # Convert any potential NumPy types to Python native types
+            predictions_list = predictions.tolist() if isinstance(predictions, np.ndarray) else predictions
+            optimizer = best_optimizer if isinstance(best_optimizer, str) else str(best_optimizer)
+            accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
+
+            st.write('Prediction Results')
+            for i, pred in enumerate(predictions_list):
+                st.write(f'Row {i+1} Prediction: {round(float(pred), 2)}')
+            st.write(f'Best Optimizer: {optimizer}')
+            st.write(f'Accuracy: {round(accuracy_value, 2)}')
+        except Exception as e:
+            st.error(f'Unexpected error: {str(e)}')
 
 if __name__ == '__main__':
-    load_model()  # Load the model when the app starts
-    app.run(debug=os.environ.get('FLASK_DEBUG', 'False') == 'True', host='0.0.0.0', port=5002)
+    main()
