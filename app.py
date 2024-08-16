@@ -23,132 +23,112 @@ def load_model():
         st.error(f"Error: Missing key in the loaded model data: {e}")
         raise
 
-def generate_form():
-    st.markdown('<div class="form-container">', unsafe_allow_html=True)
-
-    features_list = []
-    for i in range(st.session_state.num_rows):
-        st.markdown(f'<div class="input-group"><h3>Row {i+1}</h3></div>', unsafe_allow_html=True)
-        cols = st.columns(3)
-        with cols[0]:
-            burden = st.number_input(f'Burden {i+1} (m)', min_value=0.0, key=f'burden_{i}')
-            spacing = st.number_input(f'Spacing {i+1} (m)', min_value=0.0, key=f'spacing_{i}')
-            ucs = st.number_input(f'UCS {i+1}', min_value=0.0, key=f'ucs_{i}')
-        with cols[1]:
-            hole_diameter = st.number_input(f'Hole Diameter {i+1} (mm)', min_value=0.0, key=f'hole_diameter_{i}')
-            initial_stemming = st.number_input(f'Initial Stemming {i+1} (mm)', min_value=0.0, key=f'initial_stemming_{i}')
-            final_stemming = st.number_input(f'Final Stemming {i+1} (mm)', min_value=0.0, key=f'final_stemming_{i}')
-        with cols[2]:
-            charge_length = st.number_input(f'Charge Length {i+1} (m)', min_value=0.0, key=f'charge_length_{i}')
-            charge_per_hole = st.number_input(f'Charge per Hole {i+1}', min_value=0.0, key=f'charge_per_hole_{i}')
-            powder_factor = st.number_input(f'Powder Factor {i+1}', min_value=0.0, key=f'powder_factor_{i}')
-
-        features = [st.session_state[f'burden_{i}'], st.session_state[f'spacing_{i}'], st.session_state[f'ucs_{i}'], 
-                    st.session_state[f'hole_diameter_{i}'], st.session_state[f'initial_stemming_{i}'], st.session_state[f'final_stemming_{i}'], 
-                    st.session_state[f'charge_length_{i}'], st.session_state[f'charge_per_hole_{i}'], st.session_state[f'powder_factor_{i}']]
-        features_list.append(features)
-
-    if st.button('Predict'):
-        try:
-            final_features = scaler.transform(np.array(features_list))
-            predictions = best_model.predict(final_features)
-
-            predictions_list = predictions.tolist() if isinstance(predictions, np.ndarray) else predictions
-            optimizer = best_optimizer['optimizer'] if isinstance(best_optimizer, dict) else str(best_optimizer)
-            accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
-
-            st.markdown('<div class="prediction-results">Prediction Results</div>', unsafe_allow_html=True)
-
-            for i, pred in enumerate(predictions_list):
-                st.write(f'Row {i+1} Prediction: {round(float(pred), 2)}')
-            st.write(f'Best Optimizer: {optimizer}')
-            st.write(f'Accuracy: {round(accuracy_value, 2)}')
-
-        except Exception as e:
-            st.error(f'Unexpected error: {str(e)}')
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
 def main():
     st.markdown("""
         <style>
-            body {
-                font-family: 'Arial', sans-serif;
-                background-color: #f5f5f5;
-                color: #333;
+            .main {
+                padding: 0;
             }
-            .container {
-                max-width: 1000px;
+            .stApp {
+                max-width: 1200px;
                 margin: 0 auto;
-                padding: 20px;
-                background-color: #fff;
-                border-radius: 10px;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             }
             h1 {
-                color: #004a99;
+                color: #0000FF;
                 text-align: center;
-                font-family: 'Verdana', sans-serif;
                 font-size: 36px;
                 margin-bottom: 20px;
             }
-            .input-group {
+            .stButton>button {
+                background-color: #0000FF;
+                color: white;
+                font-size: 16px;
+                padding: 10px 24px;
+                border-radius: 20px;
+                border: none;
+                cursor: pointer;
+            }
+            .row-container {
                 display: flex;
                 justify-content: space-between;
-                flex-wrap: wrap;
                 margin-bottom: 20px;
             }
-            .input-group div {
-                width: 30%;
-                margin-bottom: 15px;
-            }
-            input[type="number"] {
-                width: 100%;
-                padding: 10px;
-                margin: 5px 0;
-                box-sizing: border-box;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-            }
-            .stButton button {
-                background-color: #004a99;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 18px;
-                margin: 20px auto;
-                cursor: pointer;
+            .row-box {
+                background-color: #f0f0f0;
+                padding: 20px;
                 border-radius: 10px;
-                width: 100%;
+                width: 30%;
             }
-            .prediction-results {
-                color: red;
-                font-size: 24px;
-                font-weight: bold;
-                margin-top: 20px;
-                text-align: center;
+            .row-box h3 {
+                margin-top: 0;
             }
-            .form-container {
-                margin-top: 40px;
+            .stNumberInput>div>div>input {
+                text-align: left;
             }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="container">', unsafe_allow_html=True)
-
     st.title("Rock Fragment Size Predictor")
 
-    if 'num_rows' not in st.session_state:
-        st.session_state.num_rows = 1
+    load_model()
 
-    if st.button('Generate Form'):
-        load_model()
-        generate_form()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    if best_model is None:
+        st.error('Model not loaded')
+        return
+
+    if 'num_rows' not in st.session_state:
+        st.session_state.num_rows = 5
+    if 'form_generated' not in st.session_state:
+        st.session_state.form_generated = False
+
+    num_rows = st.number_input('Number of rows to predict', min_value=1, max_value=10, value=st.session_state.num_rows, key='num_rows_input')
+
+    if st.button('Generate Form') or st.session_state.form_generated:
+        st.session_state.form_generated = True
+        st.session_state.num_rows = num_rows
+        features_list = []
+
+        for i in range(0, num_rows, 3):
+            st.markdown('<div class="row-container">', unsafe_allow_html=True)
+            
+            for j in range(3):
+                if i + j < num_rows:
+                    st.markdown(f'<div class="row-box">', unsafe_allow_html=True)
+                    st.subheader(f'Row {i+j+1}')
+                    burden = st.number_input(f'Burden (m):', key=f'burden_{i+j}')
+                    spacing = st.number_input(f'Spacing (m):', key=f'spacing_{i+j}')
+                    ucs = st.number_input(f'UCS:', key=f'ucs_{i+j}')
+                    hole_diameter = st.number_input(f'Hole Diameter (mm):', key=f'hole_diameter_{i+j}')
+                    initial_stemming = st.number_input(f'Initial Stemming:', key=f'initial_stemming_{i+j}')
+                    final_stemming = st.number_input(f'Final Stemming:', key=f'final_stemming_{i+j}')
+                    charge_length = st.number_input(f'Charge Length:', key=f'charge_length_{i+j}')
+                    charge_per_hole = st.number_input(f'Charge per Hole:', key=f'charge_per_hole_{i+j}')
+                    powder_factor = st.number_input(f'Powder Factor:', key=f'powder_factor_{i+j}')
+
+                    features = [burden, spacing, ucs, hole_diameter, initial_stemming, final_stemming, charge_length, charge_per_hole, powder_factor]
+                    features_list.append(features)
+                    st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.button('Predict'):
+            try:
+                final_features = scaler.transform(np.array(features_list))
+                predictions = best_model.predict(final_features)
+
+                predictions_list = predictions.tolist() if isinstance(predictions, np.ndarray) else predictions
+                optimizer = best_optimizer['optimizer'] if isinstance(best_optimizer, dict) else str(best_optimizer)
+                accuracy_value = float(accuracy) if isinstance(accuracy, (np.float32, np.float64)) else accuracy
+
+                st.subheader('Prediction Results')
+
+                for i, pred in enumerate(predictions_list):
+                    st.write(f'Row {i+1} Prediction: {round(float(pred), 2)}')
+                st.write(f'Best Optimizer: {optimizer}')
+                st.write(f'Accuracy: {round(accuracy_value, 2)}')
+
+            except Exception as e:
+                st.error(f'Unexpected error: {str(e)}')
 
 if __name__ == '__main__':
     main()
