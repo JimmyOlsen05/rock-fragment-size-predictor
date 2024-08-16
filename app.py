@@ -98,7 +98,7 @@ def main():
                         final_stemming = st.number_input(f'Final Stemming Height (m):', key=f'final_stemming_{i+j}')
                         charge_length = st.number_input(f'Charge Length Height (m):', key=f'charge_length_{i+j}')
                         charge_per_hole = st.number_input(f'Charge per Hole (Kg):', key=f'charge_per_hole_{i+j}')
-                        powder_factor = st.number_input(f'Powder Factor (Kg/m3):', key=f'powder_factor_{i+j}')
+                        powder_factor = st.number_input(f'Powder Factor (Kg/m³):', key=f'powder_factor_{i+j}')
 
                         features = [burden, spacing, ucs, hole_diameter, initial_stemming, final_stemming, charge_length, charge_per_hole, powder_factor]
                         features_list.append(features)
