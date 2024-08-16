@@ -50,14 +50,17 @@ def main():
             }
             .row-container {
                 display: flex;
-                justify-content: space-between;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                gap: 20px;
                 margin-bottom: 20px;
             }
             .row-box {
                 background-color: #f0f0f0;
                 padding: 20px;
                 border-radius: 10px;
-                width: 30%;
+                width: calc(33.33% - 14px);
+                box-sizing: border-box;
             }
             .row-box h3 {
                 margin-top: 0;
@@ -88,28 +91,26 @@ def main():
         st.session_state.num_rows = num_rows
         features_list = []
 
-        for i in range(0, num_rows, 3):
-            st.markdown('<div class="row-container">', unsafe_allow_html=True)
-            
-            for j in range(3):
-                if i + j < num_rows:
-                    st.markdown(f'<div class="row-box">', unsafe_allow_html=True)
-                    st.subheader(f'Row {i+j+1}')
-                    burden = st.number_input(f'Burden (m):', key=f'burden_{i+j}')
-                    spacing = st.number_input(f'Spacing (m):', key=f'spacing_{i+j}')
-                    ucs = st.number_input(f'UCS:', key=f'ucs_{i+j}')
-                    hole_diameter = st.number_input(f'Hole Diameter (mm):', key=f'hole_diameter_{i+j}')
-                    initial_stemming = st.number_input(f'Initial Stemming:', key=f'initial_stemming_{i+j}')
-                    final_stemming = st.number_input(f'Final Stemming:', key=f'final_stemming_{i+j}')
-                    charge_length = st.number_input(f'Charge Length:', key=f'charge_length_{i+j}')
-                    charge_per_hole = st.number_input(f'Charge per Hole:', key=f'charge_per_hole_{i+j}')
-                    powder_factor = st.number_input(f'Powder Factor:', key=f'powder_factor_{i+j}')
+        st.markdown('<div class="row-container">', unsafe_allow_html=True)
+        
+        for i in range(num_rows):
+            st.markdown(f'<div class="row-box">', unsafe_allow_html=True)
+            st.subheader(f'Row {i+1}')
+            burden = st.number_input(f'Burden (m):', key=f'burden_{i}')
+            spacing = st.number_input(f'Spacing (m):', key=f'spacing_{i}')
+            ucs = st.number_input(f'UCS:', key=f'ucs_{i}')
+            hole_diameter = st.number_input(f'Hole Diameter (mm):', key=f'hole_diameter_{i}')
+            initial_stemming = st.number_input(f'Initial Stemming:', key=f'initial_stemming_{i}')
+            final_stemming = st.number_input(f'Final Stemming:', key=f'final_stemming_{i}')
+            charge_length = st.number_input(f'Charge Length:', key=f'charge_length_{i}')
+            charge_per_hole = st.number_input(f'Charge per Hole:', key=f'charge_per_hole_{i}')
+            powder_factor = st.number_input(f'Powder Factor:', key=f'powder_factor_{i}')
 
-                    features = [burden, spacing, ucs, hole_diameter, initial_stemming, final_stemming, charge_length, charge_per_hole, powder_factor]
-                    features_list.append(features)
-                    st.markdown('</div>', unsafe_allow_html=True)
-            
+            features = [burden, spacing, ucs, hole_diameter, initial_stemming, final_stemming, charge_length, charge_per_hole, powder_factor]
+            features_list.append(features)
             st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if st.button('Predict'):
             try:
