@@ -72,7 +72,7 @@ def main():
         return
 
     if 'num_rows' not in st.session_state:
-        st.session_state.num_rows = 5
+        st.session_state.num_rows = 1
     if 'form_generated' not in st.session_state:
         st.session_state.form_generated = False
 
