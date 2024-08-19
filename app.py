@@ -76,7 +76,7 @@ def main():
     if 'form_generated' not in st.session_state:
         st.session_state.form_generated = False
 
-    num_rows = st.number_input('Number of rows to predict', min_value=1, max_value=10, value=st.session_state.num_rows, key='num_rows_input')
+    num_rows = st.number_input('Number of rows to predict', min_value=1, max_value=1000, value=st.session_state.num_rows, key='num_rows_input')
 
     if st.button('Generate Form') or st.session_state.form_generated:
         st.session_state.form_generated = True
